@@ -38,7 +38,6 @@ const FetchStreamComponent: React.FC = () => {
           const str = decoder.decode(value);
           try {
             const json = JSON.parse(str);
-            console.log(json);
             setData((prevData) => [...prevData, json]);
           } catch (e) {
             console.error('Error parsing JSON:', e);

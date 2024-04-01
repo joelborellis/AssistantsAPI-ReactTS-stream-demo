@@ -30,7 +30,7 @@ class SearchShadow:
     def search_hybrid(self, query: str) -> str:
         vector_query = VectorizedQuery(vector=self.get_embedding(query, self.model), k_nearest_neighbors=5, fields="contentVector")
         results = []
-        print("in search_hybrid in index")
+        print(f"in search_hybrid in index: {query}")
         try:
             r = self.sc.search(  
                 search_text=query,  # set this to engage a Hybrid Search
@@ -43,5 +43,6 @@ class SearchShadow:
                     #print("\n".join(f"[CATEGORY:  {doc['category']}]"  + " " + f"[SOURCEFILE:  {doc['sourcefile']}]"))
         except Exception as yikes:
                     print(f'\n\nError in SearchClient: "{yikes}"')
-        
+
+        #print("\n".join(results))
         return ("\n".join(results))

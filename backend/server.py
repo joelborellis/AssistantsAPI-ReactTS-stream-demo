@@ -118,7 +118,7 @@ class EventHandler(AssistantEventHandler):
        elif keep_retrieving_run.status == "requires_action":
            print("here you would call your function")
 
-           if self.function_name == "shadow_search":
+           if self.function_name == "azure_search":
                function_data = search_client.search_hybrid(query=json.loads(tool_call.function.arguments)["query"])
                self.output=function_data
               
