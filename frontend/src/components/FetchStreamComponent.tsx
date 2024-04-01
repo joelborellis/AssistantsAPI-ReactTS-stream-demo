@@ -8,6 +8,7 @@ const FetchStreamComponent: React.FC = () => {
   const [data, setData] = useState<StreamData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+
   useEffect(() => {
     const fetchData = async () => {
       try {

@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class SearchShadow:
+class SearchAzure:
     
     def __init__(self):
         # assign the Search variables for Azure Cogintive Search - use .env file and in the web app configure the application settings
