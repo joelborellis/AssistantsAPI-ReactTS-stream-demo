@@ -7,10 +7,10 @@ from openai import OpenAI, AssistantEventHandler
 from openai.types.beta.threads import Message, MessageDelta
 from openai.types.beta.threads.runs import ToolCall, RunStep
 from openai.types.beta import AssistantStreamEvent
-from tools.searchclient import SearchAzure
+from backend.tools.searchclient import SearchAzure
 from dotenv import load_dotenv
 from typing_extensions import override
-from queue import Queue, Empty
+from queue import Queue
 import threading
 
 load_dotenv()
@@ -143,7 +143,8 @@ def event_stream(queue):
         if message is None:  # Use `None` as a signal to end the stream.
             break
          # Serialize the message to JSON. No SSE-specific formatting is required.
-        json_message = json.dumps({"message": message})  # Newline as delimiter
+        json_message = json.dumps({"message": message})
+        #json_message = json.dumps(message)
         #print(json_message.encode('utf-8'))
         yield json_message.encode('utf-8')
 
@@ -169,7 +170,7 @@ def stream():
 
     # Start the API call in a separate thread
     def start_api_call():
-        with openai_client.beta.threads.runs.create_and_stream(
+        with openai_client.beta.threads.runs.stream(
             thread_id=assistant_thread_id.id,
             assistant_id=assistant.id,
             event_handler=event_handler,
