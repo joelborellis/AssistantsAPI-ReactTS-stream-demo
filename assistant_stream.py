@@ -1,28 +1,46 @@
-from flask import Flask, Response, stream_with_context
-import json
 import os
-import time
-from flask_cors import CORS
 from openai import OpenAI, AssistantEventHandler
-from openai.types.beta.threads import Message, MessageDelta
 from openai.types.beta.threads.runs import ToolCall, RunStep
-from openai.types.beta import AssistantStreamEvent
 from backend.tools.searchclient import SearchAzure
+import json
 from dotenv import load_dotenv
+from colorama import Fore, Style
 from typing_extensions import override
+from colorama import Fore, Style
 from queue import Queue
-import threading
 
 load_dotenv()
 
 openai_model: str = os.environ.get("OPENAI_MODEL")
-# bing_subscription_key = os.environ.get("BING_SEARCH_KEY")
+#bing_subscription_key = os.environ.get("BING_SEARCH_KEY")
 # create client for OpenAI
 openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 search_client: SearchAzure = SearchAzure()  # get instance of search to query corpus
 
-app = Flask(__name__)
-cors = CORS(app,supports_credentials=True, resources={r"/stream/*": {"origins": "*"}})
+###     file operations
+
+def save_file(filepath, content):
+    with open(filepath, 'w', encoding='utf-8') as outfile:
+        outfile.write(content)
+
+def open_file(filepath):
+    with open(filepath, 'r', encoding='utf-8', errors='ignore') as infile:
+        return infile.read()
+    
+# create a json object that can be used as the response   
+def create_json_object(id, message_content):
+        json_object = {
+            "thread_id": id,
+            "message": message_content,
+        }
+        return json.dumps(json_object, indent=2)
+        
+###     API functions
+# Function to perform a Shadow Search
+def azure_search(query):
+    search_result = search_client.search_hybrid(query)
+    print(search_result)
+    return search_result
 
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
@@ -128,12 +146,6 @@ class StreamEventHandler(AssistantEventHandler):
                print("unknown function")
                return
 
-# Function to perform a Shadow Search
-def azure_search(query):
-    search_result = search_client.search_hybrid(query)
-    print(search_result)
-    return search_result
-
 def event_stream(queue):
     while True:
         message = queue.get()
@@ -143,42 +155,55 @@ def event_stream(queue):
         json_message = json.dumps({"message": message})
         #json_message = json.dumps(message)
         #print(json_message.encode('utf-8'))
-        yield json_message.encode('utf-8')
+        #yield json_message.encode('utf-8')
+        yield json_message
 
-@app.route("/stream")
-def stream():
-    queue = Queue()
-    
+if __name__ == '__main__':
     assistant_thread_id = openai_client.beta.threads.create()
+    while True:
+        
+            queue = Queue()
+            
+            # Get user query
+            query = input('\n\nQUERY: ').strip()
+            if query.lower() == 'exit':
+                exit(0)
+                    
+            try:
+            # Retrieve an existing assistant which is Shadow Assistant
+                assistant = openai_client.beta.assistants.retrieve(
+                                assistant_id="asst_g21JvXjw8tM9oVW8dqNFa3yb",
+                                )
+                
+                openai_client.beta.threads.messages.create(  # create a message on the thread that is a user message
+                            thread_id=assistant_thread_id.id, 
+                            role="user",
+                            content=query
+                            )
+                
+                stream_event_handler = StreamEventHandler(queue, assistant_thread_id.id)  
 
-    # Define your event handler with the queue
-    event_handler = StreamEventHandler(queue, assistant_thread_id.id)
+                with openai_client.beta.threads.runs.stream(
+                        thread_id=assistant_thread_id.id,
+                        assistant_id=assistant.id,
+                        event_handler=stream_event_handler,
+                        ) as stream:
+                            stream.until_done()
+                queue.put(None)  # Signal the end of the stream
 
-    # Retrieve an existing assistant which is Shadow Assistant
-    assistant = openai_client.beta.assistants.retrieve(
-        assistant_id="asst_g21JvXjw8tM9oVW8dqNFa3yb",
-    )
+                stream = event_stream(queue)
+                
+                for json_message in stream:
+                    message_dict = json.loads(json_message)  # Decode the JSON to a Python dict
+                    print(json_message)  # Print the 'message' value
+                    #print(message_dict["message"], end=' ', flush=True)  # Print message and flush stdout
+                    #print(Fore.CYAN + message_dict["message"])
+                #print(Fore.CYAN + f"\n\n\nResponse: {event_stream(queue)}")
+            
 
-    openai_client.beta.threads.messages.create(  # create a message on the thread that is a user message
-        thread_id=assistant_thread_id.id,
-        role="user",
-        content="What are different strategies I should be considering when approaching a new prospect where we are unfamiliar and they are in the early stages of demand?",
-    )
+            except Exception as yikes:
+                    print(f'\n\nError communicating with OpenAI: "{yikes}"')
 
-    # Start the API call in a separate thread
-    def start_api_call():
-        with openai_client.beta.threads.runs.stream(
-            thread_id=assistant_thread_id.id,
-            assistant_id=assistant.id,
-            event_handler=event_handler,
-        ) as stream:
-            stream.until_done()
-        queue.put(None)  # Signal the end of the stream
 
-    thread = threading.Thread(target=start_api_call)
-    thread.start()
 
-    return Response(event_stream(queue), mimetype="application/stream+json")
-
-if __name__ == "__main__":
-    app.run(debug=True)
+        
