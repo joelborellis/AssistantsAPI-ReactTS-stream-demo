@@ -13,7 +13,7 @@ import threading
 load_dotenv()
 
 openai_model: str = os.environ.get("OPENAI_MODEL")
-#bing_subscription_key = os.environ.get("BING_SEARCH_KEY")
+assistant_id = os.environ.get("ASSISTANT_ID")
 # create client for OpenAI
 openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 search_client: SearchAzure = SearchAzure()  # get instance of search to query corpus
@@ -27,21 +27,6 @@ def save_file(filepath, content):
 def open_file(filepath):
     with open(filepath, 'r', encoding='utf-8', errors='ignore') as infile:
         return infile.read()
-    
-# create a json object that can be used as the response   
-def create_json_object(id, message_content):
-        json_object = {
-            "thread_id": id,
-            "message": message_content,
-        }
-        return json.dumps(json_object, indent=2)
-        
-###     API functions
-# Function to perform a Shadow Search
-def azure_search(query):
-    search_result = search_client.search_hybrid(query)
-    print(search_result)
-    return search_result
 
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
@@ -127,7 +112,7 @@ class StreamEventHandler(AssistantEventHandler):
            return
       
        elif keep_retrieving_run.status == "requires_action":
-           print("here you would call your function")
+           print(f"calling function: {self.function_name}")
 
            if self.function_name == "azure_search":
                function_data = search_client.search_hybrid(query=json.loads(tool_call.function.arguments)["query"])
@@ -147,14 +132,15 @@ class StreamEventHandler(AssistantEventHandler):
                print("unknown function")
                return
 
-def print_stream(queue: Queue):       
+def print_stream(queue: Queue):     
     while True:
         item = queue.get(block=True)
         if item is None:
             queue.task_done()  # Mark the 'None' item as processed
             break  # Exit the loop as no more items will be added
         print(item, end='', flush=True)
-        queue.task_done()
+        queue.task_done()  
+    
 
 def main():
     assistant_thread_id = openai_client.beta.threads.create()
@@ -167,7 +153,7 @@ def main():
                 try:
                 # Retrieve an existing assistant which is Shadow Assistant
                     assistant = openai_client.beta.assistants.retrieve(
-                                    assistant_id="asst_g21JvXjw8tM9oVW8dqNFa3yb",
+                                    assistant_id=assistant_id,
                                     )
                     
                     openai_client.beta.threads.messages.create(  # create a message on the thread that is a user message

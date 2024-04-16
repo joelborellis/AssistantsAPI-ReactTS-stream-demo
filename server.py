@@ -128,10 +128,10 @@ class StreamEventHandler(AssistantEventHandler):
                print("unknown function")
                return
 
-# Function to perform a Shadow Search
+# Function to perform a Search of an Azure Search index
 def azure_search(query):
     search_result = search_client.search_hybrid(query)
-    print(search_result)
+    #print(search_result)
     return search_result
 
 def event_stream(queue):
@@ -141,8 +141,6 @@ def event_stream(queue):
             break
          # Serialize the message to JSON. No SSE-specific formatting is required.
         json_message = json.dumps({"message": message})
-        #json_message = json.dumps(message)
-        #print(json_message.encode('utf-8'))
         yield json_message.encode('utf-8')
 
 @app.route("/")
@@ -154,7 +152,7 @@ def stream():
     # Define your event handler with the queue
     stream_event_handler = StreamEventHandler(queue, assistant_thread_id.id)
 
-    # Retrieve an existing assistant which is Shadow Assistant
+    # Retrieve an existing assistant which is a generic Assistant that has a function called azure_search
     assistant = openai_client.beta.assistants.retrieve(
         assistant_id="asst_g21JvXjw8tM9oVW8dqNFa3yb",
     )
