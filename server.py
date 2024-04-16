@@ -22,7 +22,7 @@ openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 search_client: SearchAzure = SearchAzure()  # get instance of search to query corpus
 
 app = Flask(__name__)
-cors = CORS(app,supports_credentials=True, resources={r"/stream/*": {"origins": "*"}})
+cors = CORS(app,supports_credentials=True, resources={r"/*": {"origins": "*"}})
 
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
@@ -145,14 +145,14 @@ def event_stream(queue):
         #print(json_message.encode('utf-8'))
         yield json_message.encode('utf-8')
 
-@app.route("/stream")
+@app.route("/")
 def stream():
     queue = Queue()
     
     assistant_thread_id = openai_client.beta.threads.create()
 
     # Define your event handler with the queue
-    event_handler = StreamEventHandler(queue, assistant_thread_id.id)
+    stream_event_handler = StreamEventHandler(queue, assistant_thread_id.id)
 
     # Retrieve an existing assistant which is Shadow Assistant
     assistant = openai_client.beta.assistants.retrieve(
@@ -170,7 +170,7 @@ def stream():
         with openai_client.beta.threads.runs.stream(
             thread_id=assistant_thread_id.id,
             assistant_id=assistant.id,
-            event_handler=event_handler,
+            event_handler=stream_event_handler,
         ) as stream:
             stream.until_done()
         queue.put(None)  # Signal the end of the stream

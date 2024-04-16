@@ -8,6 +8,7 @@ from colorama import Fore, Style
 from typing_extensions import override
 from colorama import Fore, Style
 from queue import Queue
+import threading
 
 load_dotenv()
 
@@ -146,63 +147,61 @@ class StreamEventHandler(AssistantEventHandler):
                print("unknown function")
                return
 
-def event_stream(queue):
+def print_stream(queue: Queue):       
     while True:
-        message = queue.get()
-        if message is None:  # Use `None` as a signal to end the stream.
-            break
-         # Serialize the message to JSON. No SSE-specific formatting is required.
-        json_message = json.dumps({"message": message})
-        #json_message = json.dumps(message)
-        #print(json_message.encode('utf-8'))
-        #yield json_message.encode('utf-8')
-        yield json_message
+        item = queue.get(block=True)
+        if item is None:
+            queue.task_done()  # Mark the 'None' item as processed
+            break  # Exit the loop as no more items will be added
+        print(item, end='', flush=True)
+        queue.task_done()
 
-if __name__ == '__main__':
+def main():
     assistant_thread_id = openai_client.beta.threads.create()
     while True:
-        
-            queue = Queue()
-            
-            # Get user query
-            query = input('\n\nQUERY: ').strip()
-            if query.lower() == 'exit':
-                exit(0)
+                queue = Queue()   
+                # Get user query
+                query = input('\n\nQUERY: ').strip()
+                if query.lower() == 'exit':
+                    exit(0)                    
+                try:
+                # Retrieve an existing assistant which is Shadow Assistant
+                    assistant = openai_client.beta.assistants.retrieve(
+                                    assistant_id="asst_g21JvXjw8tM9oVW8dqNFa3yb",
+                                    )
                     
-            try:
-            # Retrieve an existing assistant which is Shadow Assistant
-                assistant = openai_client.beta.assistants.retrieve(
-                                assistant_id="asst_g21JvXjw8tM9oVW8dqNFa3yb",
+                    openai_client.beta.threads.messages.create(  # create a message on the thread that is a user message
+                                thread_id=assistant_thread_id.id, 
+                                role="user",
+                                content=query
                                 )
-                
-                openai_client.beta.threads.messages.create(  # create a message on the thread that is a user message
-                            thread_id=assistant_thread_id.id, 
-                            role="user",
-                            content=query
-                            )
-                
-                stream_event_handler = StreamEventHandler(queue, assistant_thread_id.id)  
-
-                with openai_client.beta.threads.runs.stream(
-                        thread_id=assistant_thread_id.id,
-                        assistant_id=assistant.id,
-                        event_handler=stream_event_handler,
+                    
+                    stream_event_handler = StreamEventHandler(queue, assistant_thread_id.id) 
+                    
+                    # Start the API call in a separate thread
+                    def start_api_call():
+                        with openai_client.beta.threads.runs.stream(
+                            thread_id=assistant_thread_id.id,
+                            assistant_id=assistant.id,
+                            event_handler=stream_event_handler,
                         ) as stream:
                             stream.until_done()
-                queue.put(None)  # Signal the end of the stream
+                        queue.put(None)  # Signal the end of the stream 
 
-                stream = event_stream(queue)
-                
-                for json_message in stream:
-                    message_dict = json.loads(json_message)  # Decode the JSON to a Python dict
-                    print(json_message)  # Print the 'message' value
-                    #print(message_dict["message"], end=' ', flush=True)  # Print message and flush stdout
-                    #print(Fore.CYAN + message_dict["message"])
-                #print(Fore.CYAN + f"\n\n\nResponse: {event_stream(queue)}")
-            
-
-            except Exception as yikes:
-                    print(f'\n\nError communicating with OpenAI: "{yikes}"')
+                    thread = threading.Thread(target=start_api_call)
+                    #thread.daemon = True  # Daemonize thread to close when main program exits
+                    thread.start()
+                    
+                    print_stream(queue)  # print the stream
+                    
+                    # Wait for the printer thread to process the None and exit
+                    thread.join()
+                                        
+                except Exception as yikes:
+                        print(f'\n\nError communicating with OpenAI: "{yikes}"')
+                    
+if __name__ == '__main__':
+    main()
 
 
 
