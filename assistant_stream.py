@@ -18,15 +18,6 @@ assistant_id = os.environ.get("ASSISTANT_ID")
 openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 search_client: SearchAzure = SearchAzure()  # get instance of search to query corpus
 
-###     file operations
-
-def save_file(filepath, content):
-    with open(filepath, 'w', encoding='utf-8') as outfile:
-        outfile.write(content)
-
-def open_file(filepath):
-    with open(filepath, 'r', encoding='utf-8', errors='ignore') as infile:
-        return infile.read()
 
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
@@ -38,11 +29,6 @@ class StreamEventHandler(AssistantEventHandler):
         self.run_id = None
         self.function_name = ""
         self.arguments = ""
-
-    @override
-    #def on_text_created(self, text) -> None:
-        #print(f"\nassistant > ", end="", flush=True)
-    #    self.queue.put(f"\nassistant > ")
 
     @override
     def on_text_delta(self, delta, snapshot):
