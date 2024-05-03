@@ -13,7 +13,7 @@ import threading
 load_dotenv()
 
 openai_model: str = os.environ.get("OPENAI_MODEL")
-assistant_id = os.environ.get("ASSISTANT_ID")
+assistant_id = os.environ.get("ASSISTANT_ID") # this is the id of a simple assistant that exists in OpenAI
 # create client for OpenAI
 openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 search_client: SearchAzure = SearchAzure()  # get instance of search to query corpus
@@ -100,7 +100,7 @@ class StreamEventHandler(AssistantEventHandler):
        elif keep_retrieving_run.status == "requires_action":
            print(f"calling function: {self.function_name}")
 
-           if self.function_name == "azure_search":
+           if self.function_name == "azure_search": # the Assistant knows to use this because of the system prompt in the assistant
                function_data = search_client.search_hybrid(query=json.loads(tool_call.function.arguments)["query"])
                self.output=function_data
               
@@ -138,6 +138,16 @@ def main():
                     exit(0)                    
                 try:
                 # Retrieve an existing assistant which is Shadow Assistant
+                # Here is the System prompt for the Assistant
+                
+                # You are a helpful assistant.
+
+                # Always call function 'azure_search'. This function provides necessary data for you to answer the USER query.
+
+                # Always return your answers in markdown.
+
+                # [**SOURCE:** <name of functions called during run>]
+
                     assistant = openai_client.beta.assistants.retrieve(
                                     assistant_id=assistant_id,
                                     )
