@@ -13,7 +13,7 @@ const FetchStreamComponent: React.FC = () => {
     const fetchData = async () => {
       try {
         // Update with your Flask streaming endpoint
-        const streamUrl = 'http://localhost:5000/stream';
+        const streamUrl = 'http://localhost:5000/';
         const response = await fetch(streamUrl, {
           headers: {
             'Content-Type': 'application/json',

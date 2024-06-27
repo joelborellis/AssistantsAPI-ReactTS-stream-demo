@@ -21,7 +21,7 @@ class SearchAzure:
         self.model = OPENAI_EMBED_MODEL
         self.openai_client = OpenAI()
 
-        print(f"init SearchShadow with index: {AZURE_SEARCH_INDEX}")
+        print(f"init search with index: {AZURE_SEARCH_INDEX}")
     
     def get_embedding(self, text, model):
         text = text.replace("\n", " ")
@@ -30,7 +30,7 @@ class SearchAzure:
     def search_hybrid(self, query: str) -> str:
         vector_query = VectorizedQuery(vector=self.get_embedding(query, self.model), k_nearest_neighbors=5, fields="contentVector")
         results = []
-        print(f"in search_hybrid in index: {query}")
+        print(f"in search_hybrid querying: {query}")
         try:
             r = self.sc.search(  
                 search_text=query,  # set this to engage a Hybrid Search
