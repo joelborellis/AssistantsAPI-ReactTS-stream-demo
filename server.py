@@ -97,7 +97,7 @@ class StreamEventHandler(AssistantEventHandler):
            run_id=self.run_id
        )
       
-       #print(f"\nDONE STATUS: {keep_retrieving_run.status}")
+       print(f"\nDONE STATUS: {keep_retrieving_run.status}")
     
        if keep_retrieving_run.status == "completed":
            all_messages = openai_client.beta.threads.messages.list(
@@ -141,7 +141,9 @@ def event_stream(queue):
             break
          # Serialize the message to JSON. No SSE-specific formatting is required.
         json_message = json.dumps({"message": message})
-        yield json_message.encode('utf-8')
+        json_message.encode('utf-8')
+        print(json_message, end="", flush=True)
+        yield f'{json_message}\n\n'
 
 @app.route("/")
 def stream():

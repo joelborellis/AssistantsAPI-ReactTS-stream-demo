@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import 'github-markdown-css/github-markdown.css';
 
 interface StreamData {
   message: string;
@@ -64,7 +66,9 @@ const FetchStreamComponent: React.FC = () => {
   return (
     <div>
       <h2>Streamed Data</h2>
-      <div>{messagesString}</div>
+      <div>
+      <ReactMarkdown className="markdown-body" children={messagesString} />
+      </div>
     </div>
   );
 };
