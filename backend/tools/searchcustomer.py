@@ -7,13 +7,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-class SearchAzure:
+class SearchCustomer:
     
     def __init__(self):
         # assign the Search variables for Azure Cogintive Search - use .env file and in the web app configure the application settings
         AZURE_SEARCH_ENDPOINT = os.environ.get("AZURE_SEARCH_ENDPOINT")
         AZURE_SEARCH_ADMIN_KEY = os.environ.get("AZURE_SEARCH_ADMIN_KEY")
-        AZURE_SEARCH_INDEX = os.environ.get("AZURE_SEARCH_INDEX")
+        AZURE_SEARCH_INDEX = os.environ.get("AZURE_SEARCH_INDEX_CUSTOMER")
         credential_search = AzureKeyCredential(AZURE_SEARCH_ADMIN_KEY)
         OPENAI_EMBED_MODEL = os.environ.get("OPENAI_EMBED_MODEL")
 
@@ -30,7 +30,7 @@ class SearchAzure:
     def search_hybrid(self, query: str) -> str:
         vector_query = VectorizedQuery(vector=self.get_embedding(query, self.model), k_nearest_neighbors=5, fields="contentVector")
         results = []
-        print(f"in search_hybrid querying: {query}")
+        print(f"in search_customer querying: {query}")
         try:
             r = self.sc.search(  
                 search_text=query,  # set this to engage a Hybrid Search
