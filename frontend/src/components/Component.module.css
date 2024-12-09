@@ -1,0 +1,61 @@
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 100px; /* Adjust this as needed */
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  flex-direction: column; /* Stack elements vertically */
+}
+
+.select {
+  width: 200px;
+  height: 40px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  padding: 0 10px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  outline: none;
+  transition: border 0.3s ease;
+  cursor: pointer;
+}
+
+.select:focus {
+  border: 1px solid #007bff;
+}
+
+.textarea {
+  width: 500px;              /* Make textarea wider */
+  height: 100px;             /* Make textarea taller */
+  border-radius: 20px;       /* Rounded corners */
+  border: 1px solid #ccc;    /* Light gray border */
+  padding: 20px;             /* Internal padding for comfort */
+  margin-bottom: 10px;       /* Space before the button */
+  font-size: 16px;           /* Larger text */
+  outline: none;             /* Remove default outline on focus */
+  transition: border 0.3s ease;
+  resize: none;              /* Prevent manual resizing if desired */
+}
+
+.textarea:focus {
+  border: 1px solid #007bff; /* Change border color on focus */
+}
+
+.button {
+  background-color: #007bff; /* Blue background */
+  border: none;
+  color: #fff;
+  border-radius: 20px;       /* Rounded corners */
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+.button:hover {
+  background-color: #0056b3; /* Darker blue on hover */
+}

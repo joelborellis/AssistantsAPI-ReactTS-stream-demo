@@ -1,7 +1,6 @@
-from flask import Flask, Response
+from flask import Flask, Response, request
 import json
 import os
-import time
 from flask_cors import CORS
 from openai import OpenAI, AssistantEventHandler
 from openai.types.beta.threads.runs import ToolCall, RunStep
@@ -11,6 +10,7 @@ from dotenv import load_dotenv
 from typing_extensions import override
 from queue import Queue
 import threading
+from backend.utils.utils import timeit_decorator
 
 load_dotenv()
 
@@ -44,12 +44,13 @@ def save_file_json(filename, data):
 
 
 # Function to perform a Search of an Azure Search index
+@timeit_decorator
 def azure_search(query):
     search_result = search_client.search_hybrid(query)
     # print(search_result)
     return search_result
 
-
+@timeit_decorator
 def azure_search_customer(customer, query):
     print(f"Prospect Name: {customer} - Search context:  {query}")
     search_result = search_client_customer.search_hybrid(customer + query)
@@ -133,8 +134,12 @@ def event_stream(queue):
         yield f"{json_message}\n\n"
 
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 def stream():
+    # Extract the query parameter (input_value) from the request
+    input_value = request.args.get('query', '')
+    assistant_id = request.args.get('assistantId', '')
+    
     queue = Queue()
 
     assistant_thread_id = openai_client.beta.threads.create()
@@ -144,13 +149,13 @@ def stream():
 
     # Retrieve an existing assistant which is a generic Assistant that has a function called azure_search
     assistant = openai_client.beta.assistants.retrieve(
-        assistant_id="asst_g21JvXjw8tM9oVW8dqNFa3yb",
+        assistant_id=assistant_id,
     )
 
     openai_client.beta.threads.messages.create(  # create a message on the thread that is a user message
         thread_id=assistant_thread_id.id,
         role="user",
-        content='I am in the discovery phase with a customer Northhiighland, can you suggest ways to proceed with engaging with the customer?',
+        content=input_value,
     )
 
     # Start the API call in a separate thread

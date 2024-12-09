@@ -7,15 +7,27 @@ interface StreamData {
   message: string;
 }
 
-const FetchStreamComponent: React.FC = () => {
+interface FetchStreamProps {
+  inputValue: string;
+  assistantValue: string;
+}
+
+const FetchStreamComponent: React.FC<FetchStreamProps> = ({ inputValue, assistantValue }) => {
   const [data, setData] = useState<StreamData[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!inputValue || !assistantValue) {
+      // If there's no input, don't fetch yet or fetch a default
+      return;
+    }
+
     const fetchData = async () => {
       try {
-        // Update with your Flask streaming endpoint
-        const streamUrl = "http://localhost:5000/";
+        // You can include the user input in the request URL or body.
+        // For example, if your server accepts a query parameter:
+        const streamUrl = `http://localhost:5000/?query=${encodeURIComponent(inputValue)}&assistantId=${encodeURIComponent(assistantValue)}`;
+
         const response = await fetch(streamUrl, {
           headers: {
             "Content-Type": "application/json",
@@ -23,7 +35,6 @@ const FetchStreamComponent: React.FC = () => {
           },
         });
 
-        // Check if the response is ok (status in the range 200-299)
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -40,14 +51,13 @@ const FetchStreamComponent: React.FC = () => {
           }
           const str = decoder.decode(value);
           try {
-            //const data = JSON.stringify(str);
-            const trimmedStr = str.trim(); // Trim any extraneous whitespace
+            const trimmedStr = str.trim();
             const json = JSON.parse(trimmedStr);
             setData((prevData) => [...prevData, json]);
           } catch (e) {
             console.error("Error parsing JSON:", e);
           }
-          read(); // Read the next chunk
+          read();
         };
 
         read();
@@ -58,11 +68,10 @@ const FetchStreamComponent: React.FC = () => {
     };
 
     fetchData();
-  }, []);
+  }, [inputValue, assistantValue]); // re-run whenever inputValue changes
 
   if (error) return <div>Error: {error}</div>;
 
-  //const messagesString = data.map(message => JSON.stringify(message)).join(' ');
   const messagesString = data.map((message) => message.message).join("");
 
   return (
@@ -71,7 +80,7 @@ const FetchStreamComponent: React.FC = () => {
         <h2>Streamed Data</h2>
         <div className={styles.box}>
           <div className={styles.markdown}>
-          <ReactMarkdown children={messagesString} />
+            <ReactMarkdown>{messagesString}</ReactMarkdown>
           </div>
         </div>
       </div>

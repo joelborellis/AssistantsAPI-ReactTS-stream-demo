@@ -1,0 +1,15 @@
+{"timestamp": "2024-12-08T16:03:48.500946", "function": "azure_search", "duration": "2.0840"}
+{"timestamp": "2024-12-08T16:04:23.653025", "function": "azure_search", "duration": "0.4356"}
+{"timestamp": "2024-12-08T16:05:24.849233", "function": "azure_search", "duration": "0.4253"}
+{"timestamp": "2024-12-08T16:05:26.866512", "function": "azure_search_customer", "duration": "2.0150"}
+{"timestamp": "2024-12-08T16:10:59.655588", "function": "azure_search", "duration": "2.1227"}
+{"timestamp": "2024-12-08T16:14:19.521662", "function": "azure_search", "duration": "2.0305"}
+{"timestamp": "2024-12-08T16:15:38.789715", "function": "azure_search", "duration": "0.7456"}
+{"timestamp": "2024-12-08T16:16:38.071299", "function": "azure_search", "duration": "1.5305"}
+{"timestamp": "2024-12-08T16:21:39.344220", "function": "azure_search", "duration": "1.9761"}
+{"timestamp": "2024-12-08T16:25:14.899779", "function": "azure_search", "duration": "1.8072"}
+{"timestamp": "2024-12-08T16:47:38.925312", "function": "azure_search", "duration": "2.1259"}
+{"timestamp": "2024-12-08T16:59:50.937748", "function": "azure_search", "duration": "1.8807"}
+{"timestamp": "2024-12-08T17:00:56.244728", "function": "azure_search", "duration": "2.2363"}
+{"timestamp": "2024-12-08T17:02:27.694387", "function": "azure_search", "duration": "0.7380"}
+{"timestamp": "2024-12-08T17:29:53.957433", "function": "azure_search", "duration": "2.1352"}
