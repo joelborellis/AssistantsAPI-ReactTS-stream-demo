@@ -24,7 +24,7 @@ search_client_customer: SearchCustomer = (
 port: str = os.environ.get("OPENAI_MODEL")
 port: int = os.environ.get('PORT', 8000)
 
-app = Flask(__name__, static_folder='build', static_url_path='')
+app = Flask(__name__, static_folder='./frontend/build', static_url_path='')
 
 @app.route('/')
 def serve_index():
