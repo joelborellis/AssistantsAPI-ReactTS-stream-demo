@@ -26,7 +26,7 @@ const FetchStreamComponent: React.FC<FetchStreamProps> = ({ inputValue, assistan
       try {
         // You can include the user input in the request URL or body.
         // For example, if your server accepts a query parameter:
-        const streamUrl = `http://localhost:5000/?query=${encodeURIComponent(inputValue)}&assistantId=${encodeURIComponent(assistantValue)}`;
+        const streamUrl = `/shadow?query=${encodeURIComponent(inputValue)}&assistantId=${encodeURIComponent(assistantValue)}`;
 
         const response = await fetch(streamUrl, {
           headers: {

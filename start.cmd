@@ -12,7 +12,6 @@ if "%errorlevel%" neq "0" (
 echo.
 echo Starting backend
 echo.
-start http://localhost:5000
 call python ./server.py
 if "%errorlevel%" neq "0" (
     echo Failed to start backend

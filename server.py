@@ -1,9 +1,8 @@
-from flask import Flask, Response, request
+from flask import Flask, Response, request,send_from_directory
 import json
 import os
 from flask_cors import CORS
 from openai import OpenAI, AssistantEventHandler
-from openai.types.beta.threads.runs import ToolCall, RunStep
 from backend.tools.searchshadow import SearchShadow
 from backend.tools.searchcustomer import SearchCustomer
 from dotenv import load_dotenv
@@ -16,15 +15,22 @@ load_dotenv()
 
 openai_model: str = os.environ.get("OPENAI_MODEL")
 # bing_subscription_key = os.environ.get("BING_SEARCH_KEY")
-# create client for OpenAI
+# create client
 openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 search_client: SearchShadow = SearchShadow()  # get instance of search to query corpus
 search_client_customer: SearchCustomer = (
     SearchCustomer()
 )  # get instance of search to query corpus
+port: str = os.environ.get("OPENAI_MODEL")
+port: int = os.environ.get('PORT', 8000)
 
-app = Flask(__name__)
-cors = CORS(app, supports_credentials=True, resources={r"/*": {"origins": "*"}})
+app = Flask(__name__, static_folder='build', static_url_path='')
+
+@app.route('/')
+def serve_index():
+    return send_from_directory(app.static_folder, 'index.html')
+
+cors = CORS(app)
 
 def save_file_json(filename, data):
     """
@@ -69,8 +75,7 @@ class StreamEventHandler(AssistantEventHandler):
         self.function_name = ""
         self.arguments = ""
 
-    override
-
+    @override
     def on_event(self, event):
         # Retrieve events that are denoted with 'requires_action'
         # since these will have our tool_calls
@@ -134,7 +139,7 @@ def event_stream(queue):
         yield f"{json_message}\n\n"
 
 
-@app.route("/", methods=['GET'])
+@app.route("/shadow", methods=['GET'])
 def stream():
     # Extract the query parameter (input_value) from the request
     input_value = request.args.get('query', '')
@@ -156,7 +161,7 @@ def stream():
         thread_id=assistant_thread_id.id,
         role="user",
         content=input_value,
-    )
+    ) 
 
     # Start the API call in a separate thread
     def start_api_call():
@@ -175,4 +180,4 @@ def stream():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=port, debug=True)

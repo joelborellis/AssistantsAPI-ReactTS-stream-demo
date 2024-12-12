@@ -25,7 +25,7 @@ const InputComponent: React.FC<InputComponentProps> = ({ getData }) => {
           value={assistantValue}
           onChange={(e) => setAssistantValue(e.target.value)}
         >
-          <option value="asst_g21JvXjw8tM9oVW8dqNFa3yb">Get Insights</option>
+          <option value="asst_mjyck1jtUVq3A182NSO2rdcu">Get Insights</option>
           <option value="">Create MEG</option>
         </select>
 
